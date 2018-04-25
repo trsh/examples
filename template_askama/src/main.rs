@@ -8,27 +8,30 @@ use actix_web::{http, server, App, HttpRequest, HttpResponse, Result};
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "user.html")]
-struct UserTemplate<'a> {
+#[template(path = "content.html")]
+struct ContentTemplate<'a> {
     name: &'a str,
-    text: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "index.html")]
-struct Index;
+#[template(path = "layout.html")]
+struct LayoutTemplate<'a> {
+    content: &'a str,
+}
 
-fn index(req: HttpRequest) -> Result<HttpResponse> {
-    let s = if let Some(name) = req.query().get("name") {
-        UserTemplate {
-            name: name,
-            text: "Welcome!",
-        }.render()
-            .unwrap()
-    } else {
-        Index.render().unwrap()
+
+fn index(_req: HttpRequest) -> Result<HttpResponse> {
+    let tmpl = ContentTemplate { name: "world" };
+    let tmpl_body = tmpl.render().unwrap();
+
+    let layout = LayoutTemplate {
+        content: &tmpl_body,
     };
-    Ok(HttpResponse::Ok().content_type("text/html").body(s))
+    let layout_body = layout.render().unwrap();
+
+    Ok(HttpResponse::Ok()
+        .content_type("text/html")
+        .body(layout_body))
 }
 
 fn main() {
